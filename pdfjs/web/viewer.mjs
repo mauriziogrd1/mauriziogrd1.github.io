@@ -18284,7 +18284,7 @@ initCom(PDFViewerApplication);
   PDFPrintServiceFactory.initGlobals(PDFViewerApplication);
 }
 {
-  const HOSTED_VIEWER_ORIGINS = ["null", "https://mauriziogrd1.github.io", "https://mozilla.github.io"];
+  const HOSTED_VIEWER_ORIGINS = ["null", "https://github.com"];
   var validateFileURL = function (file) {
     if (!file) {
       return;
