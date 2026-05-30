@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<body>
+
+    <iframe id="pdf-viewer" src=""></iframe>
+
+    <script>
+        // 1. Sostituisci questo con il percorso (locale o remoto) del tuo file PDF
+        const mioPdf = '1.pdf'; 
+
+        // 2. Usiamo la versione ufficiale del viewer ospitata su UNPKG (CDN)
+        const viewerUrl = 'https://mauriziogrd1.github.io/pdfjs/web/viewer.html';
+
+        // 3. Uniamo il viewer al file PDF codificando l'URL per sicurezza
+        document.getElementById('pdf-viewer').src = `${viewerUrl}?file=${encodeURIComponent(mioPdf)}`;
+    </script>
+
+</body>
+</html>
