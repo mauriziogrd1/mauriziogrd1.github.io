@@ -1,38 +1,29 @@
-<!DOCTYPE html>
+<html>
 <head>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #323639;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-    </style>
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+html, body {
+width: 100%;
+height: 100%;
+overflow: hidden;
+}
+iframe {
+width: 100%;
+height: 100%;
+border: none;
+}
+</style>
 </head>
 <body>
-
-    <iframe id="pdf-viewer" src=""></iframe>
-
-    <script>
-        // 1. Sostituisci questo con il percorso (locale o remoto) del tuo file PDF
-        const mioPdf = 'https://mauriziogrd1.github.io/documents/1/1.pdf'; 
-
-        // 2. Usiamo la versione ufficiale del viewer ospitata su UNPKG (CDN)
-        const viewerUrl = 'https://mauriziogrd1.github.io/pdfjs/web/viewer.html';
-
-        // 3. Uniamo il viewer al file PDF codificando l'URL per sicurezza
-        document.getElementById('pdf-viewer').src = `${viewerUrl}?file=${encodeURIComponent(mioPdf)}`;
-    </script>
-
+<iframe id="pdf-viewer" src=""></iframe>
+<script>
+const mioPdf = 'https://mauriziogrd1.github.io/documents/1/1.pdf'; 
+const viewerUrl = 'https://mauriziogrd1.github.io/pdfjs/web/viewer.html';
+document.getElementById('pdf-viewer').src = `${viewerUrl}?file=${encodeURIComponent(mioPdf)}`;
+</script>
 </body>
 </html>
