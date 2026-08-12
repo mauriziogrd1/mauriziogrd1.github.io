@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+<script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+<script>
+window.MathJax = {
+tex: {
+inlineMath: [['$', '$'], ['\\(', '\\)']],
+displayMath: [['$$', '$$'], ['\\[', '\\]']]
+}
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<py-config>
+packages = ["numpy", "matplotlib"]
+</py-config>
+<style>
+@font-face {
+font-family: noto-sans-regular;
+src: url('https://mrzgardini.github.io/noto-sans-regular.ttf');
+}
+body {
+font-family: noto-sans-regular;
+line-height: 1.5;
+padding: 0 1em;
+margin: 0 auto;
+max-width: 36em;
+box-sizing: border-box;
+}
+#plot-container {
+width: 100%;
+height: 450px;
+display: flex;
+justify-content: center;
+align-items: center;
+overflow: hidden;
+}
+#plot-container img, #plot-container svg {
+max-width: 100%;
+max-height: 100%;
+height: auto;
+display: block;
+}
+input[type="range"] {
+width: 100%;
+box-sizing: border-box;
+}
+.MathJax {
+overflow-x: auto;
+overflow-y: hidden;
+}
+</style>
+</head>
+<body>
+<main id="plot-container">
+<p id="status">python loading...</p>
+</main>
+<p>
+<input type="range" id="t-slider" min="0" max="1" step="0.01" value="0">
+</p>
+<p>
+<center>my example of genus 1</center>
+$$H(u,v,t) = (1-t) \cdot S_{\text{coffee}}(u,v) + t \cdot S_{\text{torus}}(u,v)$$
+</p>
+<script type="py">
+import numpy as np
+import matplotlib.pyplot as plt
+from pyscript import document, display
+from js import window
+from pyodide.ffi import create_proxy
+
+Nu, Nv = 65, 65
+u = np.linspace(0, 2 * np.pi, Nu)
+v = np.linspace(0, 2 * np.pi, Nv)
+U, V = np.meshgrid(u, v)
+
+def get_real_mug(U, V):
+    mask_body = U <= (1.6 * np.pi)
+    
+    R_ext, R_int = 1.0, 0.82
+    H, H_bottom = 1.6, -0.6
+    
+    u_b = U / (1.6 * np.pi)
+    angle = u_b * 2 * np.pi
+    
+    r_profile = np.zeros_like(V)
+    z_profile = np.zeros_like(V)
+    
+    cond1 = V < (np.pi / 2)
+    t1 = V[cond1] / (np.pi / 2)
+    r_profile[cond1] = R_ext
+    z_profile[cond1] = -H/2 + t1 * H
+    
+    cond2 = (V >= np.pi / 2) & (V < np.pi)
+    t2 = (V[cond2] - np.pi / 2) / (np.pi / 2)
+    r_profile[cond2] = R_ext - t2 * (R_ext - R_int)
+    z_profile[cond2] = H/2
+
+    cond3 = (V >= np.pi) & (V < 1.5 * np.pi)
+    t3 = (V[cond3] - np.pi) / (0.5 * np.pi)
+    r_profile[cond3] = R_int
+    z_profile[cond3] = H/2 - t3 * (H/2 - H_bottom)
+
+    cond4 = V >= 1.5 * np.pi
+    t4 = (V[cond4] - 1.5 * np.pi) / (0.5 * np.pi)
+    r_profile[cond4] = R_int * (1.0 - t4)
+    z_profile[cond4] = H_bottom
+
+    X_body = r_profile * np.cos(angle) - 0.2
+    Y_body = r_profile * np.sin(angle)
+    Z_body = z_profile
+
+    u_h = (U - 1.6 * np.pi) / (0.4 * np.pi)
+    theta_h = u_h * 2 * np.pi
+    R_handle, r_handle = 0.55, 0.14
+    
+    X_handle = (R_ext - 0.15) + (R_handle + r_handle * np.cos(V)) * np.cos(theta_h - np.pi/2)
+    Y_handle = r_handle * np.sin(V)
+    Z_handle = (R_handle + r_handle * np.cos(V)) * np.sin(theta_h - np.pi/2)
+
+    X = np.where(mask_body, X_body, X_handle)
+    Y = np.where(mask_body, Y_body, Y_handle)
+    Z = np.where(mask_body, Z_body, Z_handle)
+    return X, Y, Z
+
+def get_torus(U, V):
+    R_torus, r_torus = 1.5, 0.55
+    X = (R_torus + r_torus * np.cos(V)) * np.cos(U)
+    Y = (R_torus + r_torus * np.cos(V)) * np.sin(U)
+    Z = r_torus * np.sin(V)
+    return X, Y, Z
+
+X0, Y0, Z0 = get_real_mug(U, V)
+X1, Y1, Z1 = get_torus(U, V)
+
+def update_plot(t):
+    plt.close('all')
+    
+    fig = plt.figure(figsize=(6, 4.5), dpi=100)
+    ax = fig.add_subplot(111, projection='3d')
+
+    X_t = (1.0 - t) * X0 + t * X1
+    Y_t = (1.0 - t) * Y0 + t * Y1
+    Z_t = (1.0 - t) * Z0 + t * Z1
+
+    ax.plot_wireframe(X_t, Y_t, Z_t, color='#00d2ff', linewidth=0.6, rstride=2, cstride=2)
+
+    ax.set_xlim(-2.2, 2.2)
+    ax.set_ylim(-2.2, 2.2)
+    ax.set_zlim(-2.2, 2.2)
+    ax.axis('off')
+
+    ax.view_init(elev=25, azim=40 + (t * 70))
+
+    container = document.getElementById("plot-container")
+    container.innerHTML = ""
+    display(fig, target="plot-container")
+
+def on_slider_change(event=None):
+    slider = document.getElementById("t-slider")
+    t_val = float(slider.value)
+    
+    update_plot(t_val)
+
+document.getElementById("status").innerHTML = ""
+update_plot(0.0)
+
+if hasattr(window, 'MathJax') and hasattr(window.MathJax, 'typeset'):
+    window.MathJax.typeset()
+
+slider_elem = document.getElementById("t-slider")
+slider_elem.addEventListener("input", create_proxy(on_slider_change))
+</script>
+</body>
+</html>
