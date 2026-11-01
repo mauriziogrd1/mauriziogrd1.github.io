@@ -1,4 +1,3 @@
-
 import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.Probability.Kernel.Composition.Comp
 
